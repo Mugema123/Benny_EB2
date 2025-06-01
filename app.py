@@ -1,63 +1,63 @@
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
 from src.data.make_dataset import load_data, preprocess_data
 from src.features.build_features import split_features_labels, train_test_split_data
 from src.models.train_model import train_xgboost_model, evaluate_model
 from src.visualization.visualize import plot_feature_importance
 from src.llm.llm_consultant import consult_llm_with_metrics
-import matplotlib.pyplot as plt
+from src.predict.inference import load_model, evaluate_on_unseen
 
 st.set_page_config(layout="wide")
 st.title("🎓 School Dropout Prediction Dashboard")
 
-# Load and preprocess data
+# 🔹 Section 1: Load and Preview Data
 df = load_data("data/raw/school_data.csv")
 df = preprocess_data(df)
 
 st.subheader("1️⃣ Dataset Preview")
 st.dataframe(df.head())
 
-# Feature and label split
+# 🔹 Section 2: Model Training and Evaluation
 X, y = split_features_labels(df)
 X_train, X_test, y_train, y_test = train_test_split_data(X, y)
 
-# Train model
 model = train_xgboost_model(X_train, y_train)
-
-# Evaluate model
 metrics = evaluate_model(model, X_test, y_test)
 
-# Display metrics
 st.subheader("2️⃣ Model Evaluation Metrics")
 for key, value in metrics.items():
     st.metric(label=key.capitalize(), value=f"{value:.2f}")
 
-# Feature importance
-st.subheader("3️⃣ Feature Importance")
-# fig = plot_feature_importance(model, return_fig=True)
-# st.pyplot(fig)
-
-# LLM Insights
-st.subheader("4️⃣ LLM Recommendations Based on Model Metrics")
+# 🔹 Section 3: LLM Insights
+st.subheader("3️⃣ LLM Recommendations Based on Model Metrics")
 if st.button("💡 Get LLM Insights"):
     llm_response = consult_llm_with_metrics(metrics, X.columns.tolist())
     st.text_area("LLM Recommendations", llm_response, height=400)
 
+# 🔹 Section 4: Inference on Uploaded New Data
+st.subheader("4️⃣ Inference and Evaluation on New Data")
 
+uploaded_file = st.file_uploader("📂 Upload new labeled CSV (must include `target` column)", type=["csv"])
 
+if uploaded_file:
+    new_data = pd.read_csv(uploaded_file)
+    st.write("📄 Uploaded Data", new_data.head())
 
-# def plot_feature_importance(model, return_fig=False):
-#     import matplotlib.pyplot as plt
-#     importances = model.feature_importances_
-#     features = model.get_booster().feature_names
-#     sorted_idx = sorted(range(len(importances)), key=lambda i: importances[i], reverse=True)
-#     plt.figure(figsize=(10, 6))
-#     plt.barh([features[i] for i in sorted_idx], [importances[i] for i in sorted_idx])
-#     plt.xlabel("Feature Importance")
-#     plt.title("Top Features")
+    try:
+        model = load_model()
+        result_df, metrics = evaluate_on_unseen(model, new_data)
+        st.write("✅ Predictions with Actual Labels")
+        st.dataframe(result_df.head())
 
-#     if return_fig:
-#         fig = plt.gcf()
-#         plt.close(fig)
-#         return fig
-#     else:
-#         plt.show()
+        st.subheader("📊 Evaluation Metrics on Uploaded Data")
+        for key, value in metrics.items():
+            st.metric(label=key.capitalize(), value=f"{value:.2f}")
+
+        if st.button("🧠 Consult LLM Based on Uploaded Data"):
+            llm_response = consult_llm_with_metrics(metrics, result_df.columns.tolist())
+            st.text_area("LLM Recommendations", llm_response, height=400)
+
+    except Exception as e:
+        st.error(f"❌ Error during inference or metric computation: {e}")
