@@ -5,8 +5,7 @@ import os
 
 def consult_llm_with_metrics(metrics: dict, feature_columns: list, model="mistralai/mistral-7b-instruct"):
     # Format the metrics into a readable string
-    #api_key = "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" 
-    api_key = "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"
+    api_key = "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" 
     metric_summary = "\n".join([f"{key}: {value:.2f}" for key, value in metrics.items()])
     feature_list = ", ".join(feature_columns)
 
@@ -62,7 +61,7 @@ Ensure your suggestions are specific, practical, and understandable to education
 """
 
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY', '')}",
         "HTTP-Referer": "https://consultbenny.streamlit.app/",  # Your app URL
         "Content-Type": "application/json"
     }
