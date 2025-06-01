@@ -11,7 +11,7 @@ from src.llm.llm_consultant import consult_llm_with_metrics
 from src.predict.inference import load_model, evaluate_on_unseen
 
 # Load OpenRouter API key for cloud-compatible LLM
-# os.environ["OPENROUTER_API_KEY"] = st.secrets["OPENROUTER_API_KEY"]
+os.environ["OPENROUTER_API_KEY"] = st.secrets["OPENROUTER_API_KEY"]
 
 st.set_page_config(layout="wide")
 st.title("🎓 School Dropout Prediction Dashboard")

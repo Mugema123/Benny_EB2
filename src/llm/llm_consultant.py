@@ -1,5 +1,6 @@
 import requests
 import os
+import streamlit as st
 
 def consult_llm_with_metrics(metrics: dict, feature_columns: list, model="mistralai/mistral-7b-instruct"):
     # Format the metrics into a readable string
@@ -58,10 +59,10 @@ Ensure your suggestions are specific, practical, and understandable to education
 """
 
     headers = {
-        "Authorization": "Bearer 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",
-        "HTTP-Referer": "https://consultbenny.streamlit.app/",  # Your app URL
-        "Content-Type": "application/json"
-    }
+    "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
+    "HTTP-Referer": "https://consultbenny.streamlit.app/",
+    "Content-Type": "application/json"
+}
 
     body = {
         "model": model,
